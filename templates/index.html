@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Chat Application</title>
+        <meta name="description" content="Chat Application" />
+        <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="menu">
+                <p class="welcome">Backyard Brains support chat<b></b></p>
+            </div>
+            <div id="chatbox">
+                <div  id="loaderimg" class="loader"></div>
+            </div>
+            <form name="message" action="">
+                <input name="usermsg" type="text" id="usermsg" />
+                
+                <input name="submitmsg" type="submit" id="submitmsg" value="Send" />
+            </form>
+        </div>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            // jQuery Document 
+
+            function getSearchParams(k){
+                var p={};
+                location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(s,k,v){p[k]=v})
+                return k?p[k]:p;
+            }
+            $("#loaderimg").hide();
+            $(document).ready(function () {
+
+                //var clientmsg = $("#usermsg").val();
+                //$.post("post.php", { text: clientmsg });
+                //$("#usermsg").val("");
+                //return false;
+
+                id = Math.floor(Math.random() * 100001);
+
+                //If user submits the form 
+                $("#submitmsg").click(function () {
+                    var oldscrollHeight = $("#chatbox")[0].scrollHeight - 20;
+                    var clientmsg = $("#usermsg").val();
+                    $("#loaderimg").show();
+                    $("#chatbox").append("<div class='msgln'><b class='user-name'>You:</b>"+clientmsg+"<br></div>");
+                    var newscrollHeight = $("#chatbox")[0].scrollHeight - 20; //Scroll height after the request 
+                    if(newscrollHeight > oldscrollHeight){
+                        $("#chatbox").animate({ scrollTop: newscrollHeight }, 'normal'); //Autoscroll to bottom of div 
+                    }
+                    $('#usermsg').val('');
+                    console.log("Question");
+                    console.log(clientmsg);
+                    $.post("/chat?id="+id+"&q=" + encodeURIComponent(clientmsg), { q: clientmsg })
+                    
+                    .done(function(data) {
+                        console.log("Response body:", data);
+                        //$("#chatbox").html("<div class='msgln'><b class='user-name'>You:</b>"+data.question+"<br></div>" + "<div class='msgln'><b class='user-name'>Agent:</b>"+data.answer.replace("\n", "<br />")+"<br></div>");
+                        $("#chatbox").append("<div class='msgln'><b class='user-name'>Agent:</b>"+data.answer.replace(new RegExp('\r?\n','g'), '<br />')+"<br></div>");
+                        
+                        var newscrollHeight = $("#chatbox")[0].scrollHeight - 20; //Scroll height after the request 
+                        if(newscrollHeight > oldscrollHeight){
+                            $("#chatbox").animate({ scrollTop: newscrollHeight }, 'normal'); //Autoscroll to bottom of div 
+                        }
+                        // Do something with the response data
+                        $("#loaderimg").hide();
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error:", textStatus, errorThrown);
+                        $("#chatbox").append("<span class='error'>"+errorThrown+"</span>");
+                        var newscrollHeight = $("#chatbox")[0].scrollHeight - 20; //Scroll height after the request 
+                        if(newscrollHeight > oldscrollHeight){
+                            $("#chatbox").animate({ scrollTop: newscrollHeight }, 'normal'); //Autoscroll to bottom of div 
+                        }
+                        // Handle the error
+                        $("#loaderimg").hide();
+                    });
+                    
+                    return false;
+                });
+
+
+
+            });
+        </script>
+    </body>
+</html>
